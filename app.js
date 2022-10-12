@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const console = require('console');
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3000, MONGO_URL = 'mongodb://localhost:27017/mestodb' } = process.env;
 
 const app = express();
 
@@ -16,7 +16,7 @@ app.use((req, res, next) => {
   next();
 });
 
-mongoose.connect('mongodb://localhost:27017/mestodb');
+mongoose.connect(MONGO_URL);
 
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
