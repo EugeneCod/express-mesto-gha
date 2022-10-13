@@ -21,6 +21,11 @@ mongoose.connect(MONGO_URL);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
+app.use('*', (req, res) => {
+  const err = new Error('Некорректный адрес запроса');
+  return res.status(404).send({ message: err.message });
+});
+
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
 });

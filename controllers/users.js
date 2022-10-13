@@ -23,7 +23,7 @@ module.exports.getUser = (req, res) => {
         return res.status(400).send({ message: 'Введен некорректный ID' });
       }
       if (err.message === 'NotFound') {
-        return res.status(404).send({ message: 'Пользователь с указанным ID не найден' });
+        return res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
       }
       return sendDefaultServerError(err, res);
     });
@@ -34,7 +34,7 @@ module.exports.createUser = (req, res) => {
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        return res.status(400).send({ message: 'Введен некорректный ID' });
+        return res.status(400).send({ message: 'Переданы некорректные данные' });
       }
       return sendDefaultServerError(err, res);
     });
@@ -52,7 +52,10 @@ module.exports.updateUserInfo = (req, res) => {
   )
     .then((user) => res.status(201).send(user))
     .catch((err) => {
-      sendUnknownServerError(err, res);
+      if (err instanceof mongoose.Error.ValidationError) {
+        return res.status(400).send({ message: 'Переданы некорректные данные' });
+      }
+      return sendDefaultServerError(err, res);
     });
 };
 
@@ -68,6 +71,9 @@ module.exports.updateUserAvatar = (req, res) => {
   )
     .then((user) => res.status(201).send(user))
     .catch((err) => {
-      sendUnknownServerError(err, res);
+      if (err instanceof mongoose.Error.ValidationError) {
+        return res.status(400).send({ message: 'Переданы некорректные данные' });
+      }
+      return sendDefaultServerError(err, res);
     });
 };
