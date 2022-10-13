@@ -9,7 +9,7 @@ function sendDefaultServerError(err, res) {
 
 module.exports.getUsers = (req, res) => {
   User.find({})
-    .then((users) => res.status(201).send({ data: users }))
+    .then((users) => res.status(200).send({ data: users }))
     .catch((err) => {
       sendDefaultServerError(err, res);
     });
@@ -17,7 +17,7 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUser = (req, res) => {
   User.findById(req.params.userId).orFail(new Error('NotFoundError'))
-    .then((user) => res.status(201).send(user))
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
         return res.status(400).send({ message: 'Введен некорректный id' });
@@ -52,7 +52,7 @@ module.exports.updateUserInfo = (req, res) => {
           runValidators: true,
         },
       )
-        .then((updatedUser) => res.status(201).send(updatedUser))
+        .then((updatedUser) => res.status(200).send(updatedUser))
         .catch((err) => {
           if (err instanceof mongoose.Error.ValidationError) {
             return res.status(400).send({ message: 'Переданы некорректные данные' });
@@ -82,7 +82,7 @@ module.exports.updateUserAvatar = (req, res) => {
           runValidators: true,
         },
       )
-        .then((updatedUser) => res.status(201).send(updatedUser))
+        .then((updatedUser) => res.status(200).send(updatedUser))
         .catch((err) => {
           if (err instanceof mongoose.Error.ValidationError) {
             return res.status(400).send({ message: 'Переданы некорректные данные' });

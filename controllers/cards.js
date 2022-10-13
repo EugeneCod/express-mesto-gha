@@ -9,7 +9,7 @@ function sendDefaultServerError(err, res) {
 
 module.exports.getCards = (req, res) => {
   Card.find({})
-    .then((cards) => res.status(201).send({ data: cards }))
+    .then((cards) => res.status(200).send({ data: cards }))
     .catch((err) => {
       sendDefaultServerError(err, res);
     });
@@ -32,7 +32,7 @@ module.exports.deleteCard = (req, res) => {
   Card.findById(req.params.cardId).orFail(new Error('NotFoundError'))
     .then(() => {
       Card.findByIdAndRemove(req.params.cardId)
-        .then((removedCard) => res.status(201).send(removedCard));
+        .then((removedCard) => res.status(200).send(removedCard));
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
@@ -59,7 +59,7 @@ module.exports.toggleLikeCard = (req, res) => {
         selectOperatorForLikes(req),
         { new: true },
       )
-        .then((updatedCard) => res.status(201).send(updatedCard));
+        .then((updatedCard) => res.status(200).send(updatedCard));
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
