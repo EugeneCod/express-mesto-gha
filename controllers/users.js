@@ -46,29 +46,23 @@ module.exports.createUser = (req, res) => {
 
 module.exports.updateUserInfo = (req, res) => {
   const { name, about } = req.body;
-  User.findById(req.user._id).orFail(new Error('NotFoundError'))
-    .then(() => {
-      User.findByIdAndUpdate(
-        req.user._id,
-        { name, about },
-        {
-          new: true,
-          runValidators: true,
-        },
-      )
-        .then((updatedUser) => res.send(updatedUser))
-        .catch((err) => {
-          if (err instanceof mongoose.Error.ValidationError) {
-            return res.status(STATUS_CODES.BAD_REQUEST)
-              .send({ message: ERROR_MESSAGES.INCORRECT_DATA });
-          }
-          return null;
-        });
-    })
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
+    {
+      new: true,
+      runValidators: true,
+    },
+  ).orFail(new Error('NotFoundError'))
+    .then((updatedUser) => res.send(updatedUser))
     .catch((err) => {
       if (err.message === 'NotFoundError') {
         return res.status(STATUS_CODES.NOT_FOUND)
           .send({ message: ERROR_MESSAGES.USER_BY_ID_NOT_FOUND });
+      }
+      if (err instanceof mongoose.Error.ValidationError) {
+        return res.status(STATUS_CODES.BAD_REQUEST)
+          .send({ message: ERROR_MESSAGES.INCORRECT_DATA });
       }
       if (err instanceof mongoose.Error.CastError) {
         return res.status(STATUS_CODES.BAD_REQUEST)
@@ -79,29 +73,23 @@ module.exports.updateUserInfo = (req, res) => {
 };
 
 module.exports.updateUserAvatar = (req, res) => {
-  User.findById(req.user._id).orFail(new Error('NotFoundError'))
-    .then(() => {
-      User.findByIdAndUpdate(
-        req.user._id,
-        { avatar: req.body.avatar },
-        {
-          new: true,
-          runValidators: true,
-        },
-      )
-        .then((updatedUser) => res.send(updatedUser))
-        .catch((err) => {
-          if (err instanceof mongoose.Error.ValidationError) {
-            return res.status(STATUS_CODES.BAD_REQUEST)
-              .send({ message: ERROR_MESSAGES.INCORRECT_DATA });
-          }
-          return null;
-        });
-    })
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar: req.body.avatar },
+    {
+      new: true,
+      runValidators: true,
+    },
+  ).orFail(new Error('NotFoundError'))
+    .then((updatedUser) => res.send(updatedUser))
     .catch((err) => {
       if (err.message === 'NotFoundError') {
         return res.status(STATUS_CODES.NOT_FOUND)
           .send({ message: ERROR_MESSAGES.USER_BY_ID_NOT_FOUND });
+      }
+      if (err instanceof mongoose.Error.ValidationError) {
+        return res.status(STATUS_CODES.BAD_REQUEST)
+          .send({ message: ERROR_MESSAGES.INCORRECT_DATA });
       }
       if (err instanceof mongoose.Error.CastError) {
         return res.status(STATUS_CODES.BAD_REQUEST)

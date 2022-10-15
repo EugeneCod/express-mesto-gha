@@ -31,11 +31,8 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  Card.findById(req.params.cardId).orFail(new Error('NotFoundError'))
-    .then(() => {
-      Card.findByIdAndRemove(req.params.cardId)
-        .then((removedCard) => res.send(removedCard));
-    })
+  Card.findByIdAndRemove(req.params.cardId).orFail(new Error('NotFoundError'))
+    .then((removedCard) => res.send(removedCard))
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
         return res.status(STATUS_CODES.BAD_REQUEST)
