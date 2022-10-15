@@ -56,15 +56,12 @@ function selectOperatorForLikes(req) {
 }
 
 module.exports.toggleLikeCard = (req, res) => {
-  Card.findById(req.params.cardId).orFail(new Error('NotFoundError'))
-    .then(() => {
-      Card.findByIdAndUpdate(
-        req.params.cardId,
-        selectOperatorForLikes(req),
-        { new: true },
-      )
-        .then((updatedCard) => res.send(updatedCard));
-    })
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    selectOperatorForLikes(req),
+    { new: true },
+  ).orFail(new Error('NotFoundError'))
+    .then((updatedCard) => res.send(updatedCard))
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
         return res.status(STATUS_CODES.BAD_REQUEST)
