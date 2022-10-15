@@ -1,15 +1,16 @@
 const { default: mongoose } = require('mongoose');
 const Card = require('../models/card');
+const { STATUS_CODES, ERROR_MESSAGES } = require('../utils/constants');
 
 function sendDefaultServerError(err, res) {
-  return res.status(500).send(
-    { message: 'На сервере произошла ошибка' },
+  return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send(
+    { message: ERROR_MESSAGES.DEFAULT_SERVER_ERROR },
   );
 }
 
 module.exports.getCards = (req, res) => {
   Card.find({})
-    .then((cards) => res.status(200).send({ data: cards }))
+    .then((cards) => res.send({ data: cards }))
     .catch((err) => {
       sendDefaultServerError(err, res);
     });
@@ -19,10 +20,11 @@ module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
-    .then((card) => res.status(201).send(card))
+    .then((card) => res.status(STATUS_CODES.CREATED).send(card))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        res.status(400).send({ message: 'Переданы некорректные данные' });
+        res.status(STATUS_CODES.BAD_REQUEST)
+          .send({ message: ERROR_MESSAGES.INCORRECT_DATA });
       }
       sendDefaultServerError(err, res);
     });
@@ -32,14 +34,16 @@ module.exports.deleteCard = (req, res) => {
   Card.findById(req.params.cardId).orFail(new Error('NotFoundError'))
     .then(() => {
       Card.findByIdAndRemove(req.params.cardId)
-        .then((removedCard) => res.status(200).send(removedCard));
+        .then((removedCard) => res.send(removedCard));
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        return res.status(400).send({ message: 'Введен некорректный id' });
+        return res.status(STATUS_CODES.BAD_REQUEST)
+          .send({ message: ERROR_MESSAGES.INCORRECT_ID });
       }
       if (err.message === 'NotFoundError') {
-        return res.status(404).send({ message: 'Карточка с указанным id не найдена' });
+        return res.status(STATUS_CODES.NOT_FOUND)
+          .send({ message: ERROR_MESSAGES.CARD_BY_ID_NOT_FOUND });
       }
       return sendDefaultServerError(err, res);
     });
@@ -59,14 +63,16 @@ module.exports.toggleLikeCard = (req, res) => {
         selectOperatorForLikes(req),
         { new: true },
       )
-        .then((updatedCard) => res.status(200).send(updatedCard));
+        .then((updatedCard) => res.send(updatedCard));
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        return res.status(400).send({ message: 'Введен некорректный id' });
+        return res.status(STATUS_CODES.BAD_REQUEST)
+          .send({ message: ERROR_MESSAGES.INCORRECT_ID });
       }
       if (err.message === 'NotFoundError') {
-        return res.status(404).send({ message: 'Карточка с указанным id не найдена' });
+        return res.status(STATUS_CODES.NOT_FOUND)
+          .send({ message: ERROR_MESSAGES.CARD_BY_ID_NOT_FOUND });
       }
       return sendDefaultServerError(err, res);
     });
