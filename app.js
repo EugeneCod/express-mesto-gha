@@ -16,13 +16,13 @@ const app = express();
 app.use(cookieParser());
 app.use(express.json());
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '6345cf9384b34b37b11f0dea',
-  };
+// app.use((req, res, next) => {
+//   req.user = {
+//     _id: '6345cf9384b34b37b11f0dea',
+//   };
 
-  next();
-});
+//   next();
+// });
 
 mongoose.connect(MONGO_URL);
 
@@ -43,3 +43,7 @@ app.use('*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
 });
+
+// jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MzU0MDkyMDU3Y2MxOTEyMzA1Mjk3YTMiLCJpYXQiOjE2NjY0NTI1MjUsImV4cCI6MTY2NzA1NzMyNX0
+// .yVPqO9ixsEXh5_3fbBehHgmBAhfiZxytqLXRWqU05TQ;
+// Max-Age=604800; Path=/; Expires=Sat, 29 Oct 2022 15:28:45 GMT; HttpOnly; SameSite=Strict

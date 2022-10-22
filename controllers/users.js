@@ -152,9 +152,7 @@ module.exports.login = (req, res) => {
 //   const { email, password } = req.body;
 
 //   User.findOne({ email }).orFail(new Error('IncorrectEmailOrPassword'))
-//     .then((user) => {
-//       bcrypt.compare(password, user.password);
-//     })
+//     .then((user) => bcrypt.compare(password, user.password))
 //     .then((matched) => {
 //       if (!matched) {
 //         return Promise.reject(new Error('IncorrectEmailOrPassword'));
