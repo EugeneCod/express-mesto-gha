@@ -1,10 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const console = require('console');
+const cookieParser = require('cookie-parser');
 
 const { PORT = 3000, MONGO_URL = 'mongodb://localhost:27017/mestodb' } = process.env;
 
 const app = express();
+
+app.use(cookieParser());
 
 app.use(express.json());
 

@@ -1,5 +1,6 @@
 const { default: mongoose } = require('mongoose');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { STATUS_CODES, ERROR_MESSAGES } = require('../utils/constants');
 
@@ -103,3 +104,52 @@ module.exports.updateUserAvatar = (req, res) => {
       return sendDefaultServerError(err, res);
     });
 };
+
+module.exports.login = (req, res) => {
+  const { email, password } = req.body;
+
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign(
+        { _id: user._id },
+        'SECRET-KEY',
+        { expiresIn: '7d' },
+      );
+      res.cookie('jwt', token, {
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+        sameSite: true,
+      })
+        .end();
+      // res.send({ token });
+    })
+    .catch((err) => {
+      if (err.message === 'IncorrectEmailOrPassword') {
+        return res.status(STATUS_CODES.UNAUTHORIZED)
+          .send({ message: ERROR_MESSAGES.INCORRECT_AUTHORIZATION_DATA });
+      }
+      return sendDefaultServerError(err, res);
+    });
+};
+
+// module.exports.login = (req, res) => {
+//   const { email, password } = req.body;
+
+//   User.findOne({ email }).orFail(new Error('IncorrectEmailOrPassword'))
+//     .then((user) => {
+//       bcrypt.compare(password, user.password);
+//     })
+//     .then((matched) => {
+//       if (!matched) {
+//         return Promise.reject(new Error('IncorrectEmailOrPassword'));
+//       }
+//       return res.send({ message: 'Всё верно!' });
+//     })
+//     .catch((err) => {
+//       if (err.message === 'IncorrectEmailOrPassword') {
+//         return res.status(STATUS_CODES.UNAUTHORIZED)
+//           .send({ message: ERROR_MESSAGES.INCORRECT_AUTHORIZATION_DATA });
+//       }
+//       return sendDefaultServerError(err, res);
+//     });
+// };
