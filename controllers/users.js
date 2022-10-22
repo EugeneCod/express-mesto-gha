@@ -34,6 +34,22 @@ module.exports.getUser = (req, res) => {
     });
 };
 
+module.exports.getAuthorizedUser = (req, res) => {
+  User.findById(req.user._id).orFail(new Error('NotFoundError'))
+    .then((user) => res.send(user))
+    .catch((err) => {
+      if (err instanceof mongoose.Error.CastError) {
+        return res.status(STATUS_CODES.BAD_REQUEST)
+          .send({ message: ERROR_MESSAGES.INCORRECT_ID });
+      }
+      if (err.message === 'NotFoundError') {
+        return res.status(STATUS_CODES.NOT_FOUND)
+          .send({ message: ERROR_MESSAGES.USER_BY_ID_NOT_FOUND });
+      }
+      return sendDefaultServerError(err, res);
+    });
+};
+
 module.exports.createUser = (req, res) => {
   bcrypt.hash(req.body.password, 7)
     .then((hash) => User.create({
