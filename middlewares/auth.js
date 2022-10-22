@@ -9,7 +9,6 @@ module.exports = (req, res, next) => {
       .send({ message: ERROR_MESSAGES.AUTHORIZATION_REQUIRED });
   }
 
-  // const token = authorization.replace('Bearer ', '');
   let payload;
 
   try {

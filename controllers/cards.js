@@ -31,8 +31,15 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId).orFail(new Error('NotFoundError'))
-    .then((removedCard) => res.send(removedCard))
+  Card.findById(req.params.cardId).orFail(new Error('NotFoundError'))
+    .then((card) => {
+      const id = card.owner.toString();
+      if (id !== req.user._id) {
+        return Promise.reject(new Error('AccessForbiddenError'));
+      }
+      return Card.findByIdAndRemove(req.params.cardId)
+        .then((removedCard) => res.send(removedCard));
+    })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
         return res.status(STATUS_CODES.BAD_REQUEST)
@@ -42,9 +49,29 @@ module.exports.deleteCard = (req, res) => {
         return res.status(STATUS_CODES.NOT_FOUND)
           .send({ message: ERROR_MESSAGES.CARD_BY_ID_NOT_FOUND });
       }
+      if (err.message === 'AccessForbiddenError') {
+        return res.status(STATUS_CODES.FORBIDDEN)
+          .send({ message: ERROR_MESSAGES.REJECT_CARD_DELETION });
+      }
       return sendDefaultServerError(err, res);
     });
 };
+
+// module.exports.deleteCard = (req, res) => {
+//   Card.findByIdAndRemove(req.params.cardId).orFail(new Error('NotFoundError'))
+//     .then((removedCard) => res.send(removedCard))
+//     .catch((err) => {
+//       if (err instanceof mongoose.Error.CastError) {
+//         return res.status(STATUS_CODES.BAD_REQUEST)
+//           .send({ message: ERROR_MESSAGES.INCORRECT_ID });
+//       }
+//       if (err.message === 'NotFoundError') {
+//         return res.status(STATUS_CODES.NOT_FOUND)
+//           .send({ message: ERROR_MESSAGES.CARD_BY_ID_NOT_FOUND });
+//       }
+//       return sendDefaultServerError(err, res);
+//     });
+// };
 
 function selectOperatorForLikes(req) {
   return req.method === 'PUT'
