@@ -137,7 +137,6 @@ module.exports.login = (req, res) => {
         sameSite: true,
       })
         .end();
-      // res.send({ token });
     })
     .catch((err) => {
       if (err.message === 'IncorrectEmailOrPassword') {
@@ -147,23 +146,3 @@ module.exports.login = (req, res) => {
       return sendDefaultServerError(err, res);
     });
 };
-
-// module.exports.login = (req, res) => {
-//   const { email, password } = req.body;
-
-//   User.findOne({ email }).orFail(new Error('IncorrectEmailOrPassword'))
-//     .then((user) => bcrypt.compare(password, user.password))
-//     .then((matched) => {
-//       if (!matched) {
-//         return Promise.reject(new Error('IncorrectEmailOrPassword'));
-//       }
-//       return res.send({ message: 'Всё верно!' });
-//     })
-//     .catch((err) => {
-//       if (err.message === 'IncorrectEmailOrPassword') {
-//         return res.status(STATUS_CODES.UNAUTHORIZED)
-//           .send({ message: ERROR_MESSAGES.INCORRECT_AUTHORIZATION_DATA });
-//       }
-//       return sendDefaultServerError(err, res);
-//     });
-// };
