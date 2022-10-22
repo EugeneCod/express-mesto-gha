@@ -1,4 +1,5 @@
 const { default: mongoose } = require('mongoose');
+const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const { STATUS_CODES, ERROR_MESSAGES } = require('../utils/constants');
 
@@ -33,7 +34,11 @@ module.exports.getUser = (req, res) => {
 };
 
 module.exports.createUser = (req, res) => {
-  User.create(req.body)
+  bcrypt.hash(req.body.password, 7)
+    .then((hash) => User.create({
+      ...req.body,
+      password: hash,
+    }))
     .then((user) => res.status(STATUS_CODES.CREATED).send(user))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
