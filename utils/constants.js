@@ -7,6 +7,7 @@ const STATUS_CODES = {
 };
 
 const ERROR_MESSAGES = {
+  AUTHORIZATION_REQUIRED: 'Необходима авторизация',
   INCORRECT_DATA: 'Переданы некорректные данные',
   INCORRECT_AUTHORIZATION_DATA: 'Неправильные почта или пароль',
   INCORRECT_ID: 'Введен некорректный id',

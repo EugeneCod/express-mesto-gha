@@ -3,12 +3,17 @@ const mongoose = require('mongoose');
 const console = require('console');
 const cookieParser = require('cookie-parser');
 
-const { PORT = 3000, MONGO_URL = 'mongodb://localhost:27017/mestodb' } = process.env;
+const { login, createUser } = require('./controllers/users');
+const auth = require('./middlewares/auth');
+
+const {
+  PORT = 3000,
+  MONGO_URL = 'mongodb://localhost:27017/mestodb',
+} = process.env;
 
 const app = express();
 
 app.use(cookieParser());
-
 app.use(express.json());
 
 app.use((req, res, next) => {
@@ -20,6 +25,12 @@ app.use((req, res, next) => {
 });
 
 mongoose.connect(MONGO_URL);
+
+app.post('/signin', login);
+app.post('/signup', createUser);
+
+// авторизация
+app.use(auth);
 
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
