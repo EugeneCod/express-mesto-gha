@@ -12,6 +12,7 @@ const ERROR_MESSAGES = {
   AUTHORIZATION_REQUIRED: 'Необходима авторизация',
   INCORRECT_DATA: 'Переданы некорректные данные',
   INCORRECT_EMAIL: 'Некорректный формат почты',
+  INCORRECT_URL: 'Некорректный адрес ресурса',
   INCORRECT_AUTHORIZATION_DATA: 'Неправильные почта или пароль',
   INCORRECT_ID: 'Введен некорректный id',
   CARD_BY_ID_NOT_FOUND: 'Карточка с указанным id не найдена',

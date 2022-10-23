@@ -49,6 +49,9 @@ module.exports.createUser = (req, res, next) => {
       if (err.message.indexOf('IncorrectEmailFormat') !== -1) {
         return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_EMAIL));
       }
+      if (err.message.indexOf('IncorrectUrlFormat') !== -1) {
+        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_URL));
+      }
       if (err instanceof mongoose.Error.ValidationError) {
         return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_DATA));
       }
@@ -119,5 +122,10 @@ module.exports.login = (req, res, next) => {
       })
         .end();
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.message.indexOf('IncorrectEmailFormat') !== -1) {
+        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_EMAIL));
+      }
+      return next(err);
+    });
 };
