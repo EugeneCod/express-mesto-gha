@@ -18,24 +18,14 @@ module.exports.getUser = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(new NotFoundError(ERROR_MESSAGES.USER_BY_ID_NOT_FOUND))
     .then((user) => res.send(user))
-    .catch((err) => {
-      if (err instanceof mongoose.Error.CastError) {
-        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_ID));
-      }
-      return next(err);
-    });
+    .catch(next);
 };
 
 module.exports.getAuthorizedUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(new NotFoundError(ERROR_MESSAGES.USER_BY_ID_NOT_FOUND))
     .then((user) => res.send(user))
-    .catch((err) => {
-      if (err instanceof mongoose.Error.CastError) {
-        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_ID));
-      }
-      return next(err);
-    });
+    .catch(next);
 };
 
 module.exports.createUser = (req, res, next) => {
@@ -55,15 +45,6 @@ module.exports.createUser = (req, res, next) => {
       res.status(STATUS_CODES.CREATED).send(modifiedUser);
     })
     .catch((err) => {
-      if (err.message.indexOf('IncorrectEmailFormat') !== -1) {
-        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_EMAIL));
-      }
-      if (err.message.indexOf('IncorrectUrlFormat') !== -1) {
-        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_URL));
-      }
-      if (err instanceof mongoose.Error.ValidationError) {
-        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_DATA));
-      }
       if (err.code === 11000) {
         return next(new ConflictError(ERROR_MESSAGES.CONFLICT_WITH_THE_USER_BASE));
       }
@@ -82,15 +63,7 @@ module.exports.updateUserInfo = (req, res, next) => {
     },
   ).orFail(new NotFoundError(ERROR_MESSAGES.USER_BY_ID_NOT_FOUND))
     .then((updatedUser) => res.send(updatedUser))
-    .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_DATA));
-      }
-      if (err instanceof mongoose.Error.CastError) {
-        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_ID));
-      }
-      return next(err);
-    });
+    .catch(next);
 };
 
 module.exports.updateUserAvatar = (req, res, next) => {
@@ -103,15 +76,7 @@ module.exports.updateUserAvatar = (req, res, next) => {
     },
   ).orFail(new NotFoundError(ERROR_MESSAGES.USER_BY_ID_NOT_FOUND))
     .then((updatedUser) => res.send(updatedUser))
-    .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_DATA));
-      }
-      if (err instanceof mongoose.Error.CastError) {
-        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_ID));
-      }
-      return next(err);
-    });
+    .catch(next);
 };
 
 module.exports.login = (req, res, next) => {
@@ -132,10 +97,5 @@ module.exports.login = (req, res, next) => {
         .send({ message: 'Авторизация прошла успешно!' });
       // .end();
     })
-    .catch((err) => {
-      if (err.message.indexOf('IncorrectEmailFormat') !== -1) {
-        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_EMAIL));
-      }
-      return next(err);
-    });
+    .catch(next);
 };

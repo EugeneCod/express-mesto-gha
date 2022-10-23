@@ -1,8 +1,6 @@
-const { default: mongoose } = require('mongoose');
 const Card = require('../models/card');
 const { STATUS_CODES, ERROR_MESSAGES } = require('../utils/constants');
 
-const BadRequestError = require('../errors/bad-request');
 const NotFoundError = require('../errors/not-found');
 const ForbiddenError = require('../errors/forbidden');
 
@@ -17,12 +15,7 @@ module.exports.createCard = (req, res, next) => {
 
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.status(STATUS_CODES.CREATED).send(card))
-    .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_DATA));
-      }
-      return next(err);
-    });
+    .catch(next);
 };
 
 module.exports.deleteCard = (req, res, next) => {
@@ -35,12 +28,7 @@ module.exports.deleteCard = (req, res, next) => {
       return Card.findByIdAndRemove(req.params.cardId)
         .then((removedCard) => res.send(removedCard));
     })
-    .catch((err) => {
-      if (err instanceof mongoose.Error.CastError) {
-        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_ID));
-      }
-      return next(err);
-    });
+    .catch(next);
 };
 
 function selectOperatorForLikes(req) {
@@ -56,10 +44,5 @@ module.exports.toggleLikeCard = (req, res, next) => {
     { new: true },
   ).orFail(new NotFoundError(ERROR_MESSAGES.CARD_BY_ID_NOT_FOUND))
     .then((updatedCard) => res.send(updatedCard))
-    .catch((err) => {
-      if (err instanceof mongoose.Error.CastError) {
-        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_ID));
-      }
-      return next(err);
-    });
+    .catch(next);
 };
