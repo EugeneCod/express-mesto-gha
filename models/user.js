@@ -7,7 +7,7 @@ const { ERROR_MESSAGES } = require('../utils/constants');
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    default: 'Жак-Ив-Кусто',
+    default: 'Жак-Ив Кусто',
     minlength: 2,
     maxlength: 30,
   },
@@ -54,8 +54,3 @@ userSchema.statics.findUserByCredentials = function (email, password) {
 };
 
 module.exports = mongoose.model('user', userSchema);
-
-// {
-//   "email": "aaaaaaaaaa@ddddd.ru",
-//   "password": "AAA123jjj456"
-// }
