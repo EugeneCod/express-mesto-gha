@@ -2,9 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const console = require('console');
 const cookieParser = require('cookie-parser');
-const { celebrate, Joi, errors } = require('celebrate');
+const { errors } = require('celebrate');
 
-const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const errorHandler = require('./middlewares/error-handler');
 const { ERROR_MESSAGES } = require('./utils/constants');
@@ -22,22 +21,7 @@ app.use(express.json());
 
 mongoose.connect(MONGO_URL);
 
-app.post('/signin', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required(),
-    password: Joi.string().required(),
-  }),
-}), login);
-
-app.post('/signup', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required(),
-    password: Joi.string().required(),
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-    avatar: Joi.string(),
-  }),
-}), createUser);
+app.use('/', require('./routes/auth'));
 
 // авторизация
 app.use(auth);

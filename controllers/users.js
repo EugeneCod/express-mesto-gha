@@ -6,7 +6,7 @@ const { STATUS_CODES, ERROR_MESSAGES } = require('../utils/constants');
 
 const BadRequestError = require('../errors/bad-request');
 const NotFoundError = require('../errors/not-found');
-const ConflictError = require('../errors/not-found');
+const ConflictError = require('../errors/conflict');
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
@@ -44,7 +44,16 @@ module.exports.createUser = (req, res, next) => {
       ...req.body,
       password: hash,
     }))
-    .then((user) => res.status(STATUS_CODES.CREATED).send(user))
+    .then((user) => {
+      const modifiedUser = {
+        _id: user._id,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        email: user.email,
+      };
+      res.status(STATUS_CODES.CREATED).send(modifiedUser);
+    })
     .catch((err) => {
       if (err.message.indexOf('IncorrectEmailFormat') !== -1) {
         return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_EMAIL));
@@ -120,7 +129,8 @@ module.exports.login = (req, res, next) => {
         httpOnly: true,
         sameSite: true,
       })
-        .end();
+        .send({ message: 'Авторизация прошла успешно!' });
+      // .end();
     })
     .catch((err) => {
       if (err.message.indexOf('IncorrectEmailFormat') !== -1) {
