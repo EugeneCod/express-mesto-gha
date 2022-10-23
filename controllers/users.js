@@ -1,10 +1,8 @@
-const { default: mongoose } = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { STATUS_CODES, ERROR_MESSAGES } = require('../utils/constants');
 
-const BadRequestError = require('../errors/bad-request');
 const NotFoundError = require('../errors/not-found');
 const ConflictError = require('../errors/conflict');
 
