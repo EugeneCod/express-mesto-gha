@@ -2,57 +2,44 @@ const { default: mongoose } = require('mongoose');
 const Card = require('../models/card');
 const { STATUS_CODES, ERROR_MESSAGES } = require('../utils/constants');
 
-function sendDefaultServerError(err, res) {
-  return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send(
-    { message: ERROR_MESSAGES.DEFAULT_SERVER_ERROR },
-  );
-}
+const BadRequestError = require('../errors/bad-request');
+const NotFoundError = require('../errors/not-found');
+const ForbiddenError = require('../errors/forbidden');
 
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch((err) => {
-      sendDefaultServerError(err, res);
-    });
+    .catch(next);
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.status(STATUS_CODES.CREATED).send(card))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        res.status(STATUS_CODES.BAD_REQUEST)
-          .send({ message: ERROR_MESSAGES.INCORRECT_DATA });
+        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_DATA));
       }
-      sendDefaultServerError(err, res);
+      return next(err);
     });
 };
 
-module.exports.deleteCard = (req, res) => {
-  Card.findById(req.params.cardId).orFail(new Error('NotFoundError'))
+module.exports.deleteCard = (req, res, next) => {
+  Card.findById(req.params.cardId)
+    .orFail(new NotFoundError(ERROR_MESSAGES.CARD_BY_ID_NOT_FOUND))
     .then((card) => {
       if (card.owner.toString() !== req.user._id) {
-        return Promise.reject(new Error('AccessForbiddenError'));
+        throw new ForbiddenError(ERROR_MESSAGES.REJECT_CARD_DELETION);
       }
       return Card.findByIdAndRemove(req.params.cardId)
         .then((removedCard) => res.send(removedCard));
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        return res.status(STATUS_CODES.BAD_REQUEST)
-          .send({ message: ERROR_MESSAGES.INCORRECT_ID });
+        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_ID));
       }
-      if (err.message === 'NotFoundError') {
-        return res.status(STATUS_CODES.NOT_FOUND)
-          .send({ message: ERROR_MESSAGES.CARD_BY_ID_NOT_FOUND });
-      }
-      if (err.message === 'AccessForbiddenError') {
-        return res.status(STATUS_CODES.FORBIDDEN)
-          .send({ message: ERROR_MESSAGES.REJECT_CARD_DELETION });
-      }
-      return sendDefaultServerError(err, res);
+      return next(err);
     });
 };
 
@@ -62,22 +49,17 @@ function selectOperatorForLikes(req) {
     : { $pull: { likes: req.user._id } }; // убрать _id из массива
 }
 
-module.exports.toggleLikeCard = (req, res) => {
+module.exports.toggleLikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     selectOperatorForLikes(req),
     { new: true },
-  ).orFail(new Error('NotFoundError'))
+  ).orFail(new NotFoundError(ERROR_MESSAGES.CARD_BY_ID_NOT_FOUND))
     .then((updatedCard) => res.send(updatedCard))
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        return res.status(STATUS_CODES.BAD_REQUEST)
-          .send({ message: ERROR_MESSAGES.INCORRECT_ID });
+        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_ID));
       }
-      if (err.message === 'NotFoundError') {
-        return res.status(STATUS_CODES.NOT_FOUND)
-          .send({ message: ERROR_MESSAGES.CARD_BY_ID_NOT_FOUND });
-      }
-      return sendDefaultServerError(err, res);
+      return next(err);
     });
 };

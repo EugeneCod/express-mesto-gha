@@ -34,13 +34,6 @@ app.use('*', (req, res, next) => {
   next(new NotFoundError(ERROR_MESSAGES.INVALID_ADDRESS_OR_METHOD));
 });
 
-// app.use('*', (req, res, next) => {
-//   const err = new Error('Некорректный адрес или метод запроса');
-//   return res
-//     .status(STATUS_CODES.NOT_FOUND)
-//     .send({ message: err.message });
-// });
-
 // обработка ошибок
 app.use(errorHandler);
 

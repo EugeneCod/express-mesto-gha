@@ -4,53 +4,41 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { STATUS_CODES, ERROR_MESSAGES } = require('../utils/constants');
 
-function sendDefaultServerError(err, res) {
-  return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send(
-    { message: ERROR_MESSAGES.DEFAULT_SERVER_ERROR },
-  );
-}
+const BadRequestError = require('../errors/bad-request');
+const NotFoundError = require('../errors/not-found');
+const ConflictError = require('../errors/not-found');
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch((err) => {
-      sendDefaultServerError(err, res);
-    });
+    .catch(next);
 };
 
-module.exports.getUser = (req, res) => {
-  User.findById(req.params.userId).orFail(new Error('NotFoundError'))
+module.exports.getUser = (req, res, next) => {
+  User.findById(req.params.userId)
+    .orFail(new NotFoundError(ERROR_MESSAGES.USER_BY_ID_NOT_FOUND))
     .then((user) => res.send(user))
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        return res.status(STATUS_CODES.BAD_REQUEST)
-          .send({ message: ERROR_MESSAGES.INCORRECT_ID });
+        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_ID));
       }
-      if (err.message === 'NotFoundError') {
-        return res.status(STATUS_CODES.NOT_FOUND)
-          .send({ message: ERROR_MESSAGES.USER_BY_ID_NOT_FOUND });
-      }
-      return sendDefaultServerError(err, res);
+      return next(err);
     });
 };
 
-module.exports.getAuthorizedUser = (req, res) => {
-  User.findById(req.user._id).orFail(new Error('NotFoundError'))
+module.exports.getAuthorizedUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .orFail(new NotFoundError(ERROR_MESSAGES.USER_BY_ID_NOT_FOUND))
     .then((user) => res.send(user))
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        return res.status(STATUS_CODES.BAD_REQUEST)
-          .send({ message: ERROR_MESSAGES.INCORRECT_ID });
+        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_ID));
       }
-      if (err.message === 'NotFoundError') {
-        return res.status(STATUS_CODES.NOT_FOUND)
-          .send({ message: ERROR_MESSAGES.USER_BY_ID_NOT_FOUND });
-      }
-      return sendDefaultServerError(err, res);
+      return next(err);
     });
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   bcrypt.hash(req.body.password, 7)
     .then((hash) => User.create({
       ...req.body,
@@ -58,19 +46,20 @@ module.exports.createUser = (req, res) => {
     }))
     .then((user) => res.status(STATUS_CODES.CREATED).send(user))
     .catch((err) => {
+      if (err.message.indexOf('IncorrectEmailFormat') !== -1) {
+        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_EMAIL));
+      }
       if (err instanceof mongoose.Error.ValidationError) {
-        return res.status(STATUS_CODES.BAD_REQUEST)
-          .send({ message: ERROR_MESSAGES.INCORRECT_DATA });
+        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_DATA));
       }
       if (err.code === 11000) {
-        return res.status(STATUS_CODES.CONFLICT)
-          .send({ message: ERROR_MESSAGES.CONFLICT_WITH_THE_USER_BASE });
+        return next(new ConflictError(ERROR_MESSAGES.CONFLICT_WITH_THE_USER_BASE));
       }
-      return sendDefaultServerError(err, res);
+      return next(err);
     });
 };
 
-module.exports.updateUserInfo = (req, res) => {
+module.exports.updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -79,26 +68,20 @@ module.exports.updateUserInfo = (req, res) => {
       new: true,
       runValidators: true,
     },
-  ).orFail(new Error('NotFoundError'))
+  ).orFail(new NotFoundError(ERROR_MESSAGES.USER_BY_ID_NOT_FOUND))
     .then((updatedUser) => res.send(updatedUser))
     .catch((err) => {
-      if (err.message === 'NotFoundError') {
-        return res.status(STATUS_CODES.NOT_FOUND)
-          .send({ message: ERROR_MESSAGES.USER_BY_ID_NOT_FOUND });
-      }
       if (err instanceof mongoose.Error.ValidationError) {
-        return res.status(STATUS_CODES.BAD_REQUEST)
-          .send({ message: ERROR_MESSAGES.INCORRECT_DATA });
+        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_DATA));
       }
       if (err instanceof mongoose.Error.CastError) {
-        return res.status(STATUS_CODES.BAD_REQUEST)
-          .send({ message: ERROR_MESSAGES.INCORRECT_ID });
+        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_ID));
       }
-      return sendDefaultServerError(err, res);
+      return next(err);
     });
 };
 
-module.exports.updateUserAvatar = (req, res) => {
+module.exports.updateUserAvatar = (req, res, next) => {
   User.findByIdAndUpdate(
     req.user._id,
     { avatar: req.body.avatar },
@@ -106,26 +89,20 @@ module.exports.updateUserAvatar = (req, res) => {
       new: true,
       runValidators: true,
     },
-  ).orFail(new Error('NotFoundError'))
+  ).orFail(new NotFoundError(ERROR_MESSAGES.USER_BY_ID_NOT_FOUND))
     .then((updatedUser) => res.send(updatedUser))
     .catch((err) => {
-      if (err.message === 'NotFoundError') {
-        return res.status(STATUS_CODES.NOT_FOUND)
-          .send({ message: ERROR_MESSAGES.USER_BY_ID_NOT_FOUND });
-      }
       if (err instanceof mongoose.Error.ValidationError) {
-        return res.status(STATUS_CODES.BAD_REQUEST)
-          .send({ message: ERROR_MESSAGES.INCORRECT_DATA });
+        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_DATA));
       }
       if (err instanceof mongoose.Error.CastError) {
-        return res.status(STATUS_CODES.BAD_REQUEST)
-          .send({ message: ERROR_MESSAGES.INCORRECT_ID });
+        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_ID));
       }
-      return sendDefaultServerError(err, res);
+      return next(err);
     });
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   User.findUserByCredentials(email, password)
@@ -142,11 +119,5 @@ module.exports.login = (req, res) => {
       })
         .end();
     })
-    .catch((err) => {
-      if (err.message === 'IncorrectEmailOrPassword') {
-        return res.status(STATUS_CODES.UNAUTHORIZED)
-          .send({ message: ERROR_MESSAGES.INCORRECT_AUTHORIZATION_DATA });
-      }
-      return sendDefaultServerError(err, res);
-    });
+    .catch(next);
 };
