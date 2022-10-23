@@ -62,6 +62,10 @@ module.exports.createUser = (req, res) => {
         return res.status(STATUS_CODES.BAD_REQUEST)
           .send({ message: ERROR_MESSAGES.INCORRECT_DATA });
       }
+      if (err.code === 11000) {
+        return res.status(STATUS_CODES.CONFLICT)
+          .send({ message: ERROR_MESSAGES.CONFLICT_WITH_THE_USER_BASE });
+      }
       return sendDefaultServerError(err, res);
     });
 };

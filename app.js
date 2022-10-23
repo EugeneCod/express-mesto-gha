@@ -5,6 +5,9 @@ const cookieParser = require('cookie-parser');
 
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
+const errorHandler = require('./middlewares/error-handler');
+const { ERROR_MESSAGES } = require('./utils/constants');
+const NotFoundError = require('./errors/not-found');
 
 const {
   PORT = 3000,
@@ -27,23 +30,19 @@ app.use(auth);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
-app.use('*', (req, res) => {
-  const err = new Error('Некорректный адрес или метод запроса');
-  return res.status(404).send({ message: err.message });
+app.use('*', (req, res, next) => {
+  next(new NotFoundError(ERROR_MESSAGES.INVALID_ADDRESS_OR_METHOD));
 });
 
-app.use((err, req, res, next) => {
-  const { statusCode = 500, message } = err;
-  res
-    .status(statusCode)
-    .send({
-      message: statusCode === 500
-        ? 'На сервере произошла ошибка'
-        : message,
-    });
+// app.use('*', (req, res, next) => {
+//   const err = new Error('Некорректный адрес или метод запроса');
+//   return res
+//     .status(STATUS_CODES.NOT_FOUND)
+//     .send({ message: err.message });
+// });
 
-  next();
-});
+// обработка ошибок
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
