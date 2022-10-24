@@ -1,8 +1,10 @@
+const { default: mongoose } = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { STATUS_CODES, ERROR_MESSAGES } = require('../utils/constants');
 
+const BadRequestError = require('../errors/bad-request');
 const NotFoundError = require('../errors/not-found');
 const ConflictError = require('../errors/conflict');
 
@@ -16,7 +18,12 @@ module.exports.getUser = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(new NotFoundError(ERROR_MESSAGES.USER_BY_ID_NOT_FOUND))
     .then((user) => res.send(user))
-    .catch(next);
+    .catch((err) => {
+      if (err instanceof mongoose.Error.CastError) {
+        return next(new BadRequestError(ERROR_MESSAGES.INCORRECT_ID));
+      }
+      return next(err);
+    });
 };
 
 module.exports.getAuthorizedUser = (req, res, next) => {
