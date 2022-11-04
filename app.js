@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const console = require('console');
 const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const auth = require('./middlewares/auth');
 const errorHandler = require('./middlewares/error-handler');
@@ -21,10 +22,11 @@ app.use(express.json());
 
 mongoose.connect(MONGO_URL);
 
+app.use(requestLogger); // логгер запросов
+
 app.use('/', require('./routes/auth'));
 
-// авторизация
-app.use(auth);
+app.use(auth); // авторизация
 
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
@@ -32,6 +34,8 @@ app.use('/cards', require('./routes/cards'));
 app.use('*', (req, res, next) => {
   next(new NotFoundError(ERROR_MESSAGES.INVALID_ADDRESS_OR_METHOD));
 });
+
+app.use(errorLogger); // логгер ошибок
 
 // обработчик ошибок celebrate
 app.use(errors());
